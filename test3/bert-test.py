@@ -6,8 +6,12 @@ from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from torch.utils.data import DataLoader, Dataset
 import os
 
+# 检查设备
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+print(f"Using device: {device}")
+
 # 读取数据集
-data_path = '/data/SemEval-Triplet-data/ASTE-Data-V2-EMNLP2020/14lap/dev_triplets.txt'
+data_path = '../data/SemEval-Triplet-data/ASTE-Data-V2-EMNLP2020/14lap/dev_triplets.txt'
 
 # 加载数据
 data = []
@@ -55,6 +59,7 @@ class SentimentDataset(Dataset):
 # 初始化BERT分词器和模型
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=3, output_hidden_states=True)
+model.to(device)  # 将模型移动到设备
 
 # 创建数据集和数据加载器
 train_dataset = SentimentDataset(train_texts, train_labels, tokenizer, max_length=128)
@@ -68,9 +73,10 @@ optimizer = AdamW(model.parameters(), lr=2e-5)
 # 训练模型
 start_time = time.time()
 model.train()
-for epoch in range(3):  # 训练3个epoch
+for epoch in range(10):  # 训练3个epoch
     for batch in train_loader:
         optimizer.zero_grad()
+        batch = {k: v.to(device) for k, v in batch.items()}  # 将数据移动到设备
         outputs = model(**batch)
         loss = outputs.loss
         loss.backward()
@@ -86,6 +92,7 @@ correct = 0
 total = 0
 with torch.no_grad():
     for batch in test_loader:
+        batch = {k: v.to(device) for k, v in batch.items()}  # 将数据移动到设备
         outputs = model(**batch)
         predictions = torch.argmax(outputs.logits, dim=-1)
         correct += (predictions == batch['labels']).sum().item()
@@ -95,6 +102,7 @@ with torch.no_grad():
 with torch.no_grad():
     # 取第一个batch中的第一句话
     first_batch = next(iter(test_loader))
+    first_batch = {k: v.to(device) for k, v in first_batch.items()}  # 将数据移动到设备
     outputs = model(**first_batch)
     cls_embedding = outputs.hidden_states[-1][:, 0, :]  # BERT最后一层的[CLS]标记向量
     print("First sentence CLS embedding:", cls_embedding[0])
