@@ -4,8 +4,9 @@ from torch.utils.data import Dataset, DataLoader
 import re
 import time
 import numpy as np
-
-
+# 确保设备分配正确
+device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+print(device)
 class TripletExtractionDataset(Dataset):
     def __init__(self, data, tokenizer, max_len=128):
         self.data = data
@@ -22,9 +23,9 @@ class TripletExtractionDataset(Dataset):
         input_ids = encoding['input_ids'].flatten()
         attention_mask = encoding['attention_mask'].flatten()
 
-        target_labels = [-100] * self.max_len
-        opinion_labels = [-100] * self.max_len
-        sentiment_labels = [-100] * self.max_len
+        target_labels = [0] * self.max_len
+        opinion_labels = [0] * self.max_len
+        sentiment_labels = [0] * self.max_len
 
         for (target_pos, opinion_pos, sentiment) in annotations:
             for pos in target_pos:
@@ -104,6 +105,7 @@ def train_model(model, dataloader, optimizer, scheduler, num_epochs=3):
             opinion_labels = batch['opinion_labels'].to(device)
             sentiment_labels = batch['sentiment_labels'].to(device)
 
+
             loss, _, _, _ = model(input_ids, attention_mask, target_labels, opinion_labels, sentiment_labels)
             loss.backward()
             total_loss += loss.item()
@@ -127,6 +129,7 @@ def evaluate_model(model, dataloader):
     total_target_predictions = 0
     total_opinion_predictions = 0
     total_sentiment_predictions = 0
+    examples_printed = 0  # 记录打印的样例数
 
     for batch in dataloader:
         input_ids = batch['input_ids'].to(device)
@@ -152,6 +155,21 @@ def evaluate_model(model, dataloader):
             total_opinion_predictions += torch.sum(opinion_labels != -100).item()
             total_sentiment_predictions += torch.sum(sentiment_labels != -100).item()
 
+            # 打印前3个样例的预测值和实际标签
+            if examples_printed < 3:
+                for i in range(min(len(input_ids), 3 - examples_printed)):
+                    print(f"样例 {examples_printed + 1}:")
+                    print(f"输入ID: {input_ids[i]}")
+                    print(f"目标预测: {target_preds[i]}")
+                    print(f"目标实际: {target_labels[i]}")
+                    print(f"观点预测: {opinion_preds[i]}")
+                    print(f"观点实际: {opinion_labels[i]}")
+                    print(f"情感预测: {sentiment_preds[i]}")
+                    print(f"情感实际: {sentiment_labels[i]}")
+                    examples_printed += 1
+                    if examples_printed >= 3:
+                        break
+
     avg_loss = total_loss / len(dataloader)
     target_accuracy = correct_target_predictions / total_target_predictions
     opinion_accuracy = correct_opinion_predictions / total_opinion_predictions
@@ -163,8 +181,7 @@ def evaluate_model(model, dataloader):
     print(f'情感准确率: {sentiment_accuracy:.4f}')
 
 
-# 确保设备分配正确
-device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = TripletExtractionModel('bert-base-uncased').to(device)
@@ -173,13 +190,17 @@ model = TripletExtractionModel('bert-base-uncased').to(device)
 train_dataset = preprocess_data(
     '/Users/bootscoder/PycharmProjects/nlp-lesson-design/data/SemEval-Triplet-data/ASTE-Data-V2-EMNLP2020/14lap/train_triplets.txt',
     tokenizer)
-train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
 val_dataset = preprocess_data(
     '/Users/bootscoder/PycharmProjects/nlp-lesson-design/data/SemEval-Triplet-data/ASTE-Data-V2-EMNLP2020/14lap/test_triplets.txt',
     tokenizer)
-val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
+# 只使用前20%的数据
+train_dataset = torch.utils.data.Subset(train_dataset, range(int(len(train_dataset) * 0.2)))
+val_dataset = torch.utils.data.Subset(val_dataset, range(int(len(val_dataset) * 0.2)))
+
+train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 # 设置优化器和调度器
 optimizer = AdamW(model.parameters(), lr=2e-5, correct_bias=False)
 total_steps = len(train_dataloader) * 3
