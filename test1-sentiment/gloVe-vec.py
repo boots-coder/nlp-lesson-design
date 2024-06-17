@@ -1,9 +1,10 @@
 import torch
 from torchtext.vocab import GloVe
 from torchtext.data.utils import get_tokenizer
-
+from torchtext.vocab import Vectors
 # 加载预训练的GloVe词向量
-glove = GloVe(name='6B', dim=100)
+path = '/Users/bootscoder/PycharmProjects/nlp-lesson-design/test3/.vector_cache/glove.6B.100d.txt'
+glove = Vectors(path)
 
 # 创建单词到索引的映射
 vocab = {word: idx for idx, word in enumerate(glove.itos)}

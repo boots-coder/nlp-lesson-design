@@ -8,6 +8,7 @@ model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True
 # 示例句子
 sentence = "BERT is a powerful language model."
 
+
 # 对句子进行分词
 inputs = tokenizer(sentence, return_tensors="pt", padding='max_length', truncation=True, max_length=128)
 
