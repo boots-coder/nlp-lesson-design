@@ -120,7 +120,7 @@ criterion = torch.nn.CrossEntropyLoss()
 # 训练模型
 start_time = time.time()
 model.train()
-for epoch in range(10):  # 训练3个epoch
+for epoch in range(3):  # 训练3个epoch
     for batch in train_loader:
         optimizer.zero_grad()
         input_ids = batch['input_ids'].to(device)

@@ -73,7 +73,7 @@ optimizer = AdamW(model.parameters(), lr=2e-5)
 # 训练模型
 start_time = time.time()
 model.train()
-for epoch in range(10):  # 训练3个epoch
+for epoch in range(3):  # 训练3个epoch
     for batch in train_loader:
         optimizer.zero_grad()
         batch = {k: v.to(device) for k, v in batch.items()}  # 将数据移动到设备

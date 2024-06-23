@@ -2,7 +2,7 @@ import numpy as np
 
 # 加载GloVe词向量
 embedding_index = {}
-with open('/test3/.vector_cache/glove.6B.100d.txt', 'r', encoding='utf-8') as f:
+with open('../test3/.vector_cache/glove.6B.100d.txt', 'r', encoding='utf-8') as f:
     for line in f:
         values = line.split()
         word = values[0]
