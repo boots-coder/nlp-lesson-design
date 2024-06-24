@@ -56,7 +56,6 @@ The project directory is organized as follows:
 - Python 3.11
 - macOS
 - PyTorch (latest version from the official website)
-- Other dependencies as listed in `requirements.txt`
 
 ## Installation
 To set up the project environment, follow these steps:
@@ -73,38 +72,10 @@ To set up the project environment, follow these steps:
     source venv/bin/activate
     ```
 
-3. **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
 
-4. **Install PyTorch:**
+3. **Install PyTorch:**
     Follow the instructions on the [PyTorch website](https://pytorch.org/get-started/locally/) to install the latest version of PyTorch for macOS.
 
-## Usage
-### Data Preprocessing
-Run the preprocessing script to prepare the data for model training:
-```bash
-python scripts/preprocess.py
-```
-
-### Model Training
-Train the NLP models by running the training script:
-```bash
-python scripts/train.py
-```
-
-### Model Evaluation
-Evaluate the trained models using the evaluation script:
-```bash
-python scripts/evaluate.py
-```
-
-## Jupyter Notebooks
-Explore the data and visualize results using the provided Jupyter notebooks in the `notebooks` directory. To start Jupyter Notebook, run:
-```bash
-jupyter notebook
-```
 
 ## Contributing
 If you would like to contribute to this project, please follow these steps:
@@ -124,6 +95,6 @@ For more details and documentation, please refer to the [project webpage](https:
 
 ---
 
-If you have any questions or need further assistance, please contact the project maintainer at your-email@example.com.
+If you have any questions or need further assistance, please contact the project maintainer at jiahaoxuan000@gmail.com.
 
 Happy coding!
