@@ -7,7 +7,7 @@ import os
 os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
 os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
 
-
+print("hello")
 ltp = LTP("LTP/small")  # 默认加载 Small 模型
                         # 也可以传入模型的路径，ltp = LTP("/path/to/your/model")
                         # /path/to/your/model 应当存在 config.json 和其他模型文件

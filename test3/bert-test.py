@@ -1,14 +1,30 @@
+import os
+import torch
+from transformers import BertTokenizer, BertForSequenceClassification
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import time
 import torch
-from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 from torch.utils.data import DataLoader, Dataset
-import os
 
+import os
+from transformers import BertTokenizer, BertForSequenceClassification, AdamW
 # 检查设备
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Using device: {device}")
+
+# 设置代理环境变量（如果需要）
+os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
+os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
+
+# 尝试下载BERT模型
+try:
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=3, output_hidden_states=True)
+    model.to(device)  # 将模型移动到设备
+    print("模型加载成功")
+except Exception as e:
+    print("模型加载失败：", e)
 
 # 读取数据集
 data_path = '../data/SemEval-Triplet-data/ASTE-Data-V2-EMNLP2020/14lap/dev_triplets.txt'
@@ -34,10 +50,6 @@ train_labels = train_df['label'].tolist()
 test_texts = test_df['sentence'].tolist()
 test_labels = test_df['label'].tolist()
 
-# 设置HTTP和HTTPS代理
-os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
-os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
-
 class SentimentDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
         self.texts = texts
@@ -55,11 +67,6 @@ class SentimentDataset(Dataset):
         inputs = {key: val.squeeze(0) for key, val in inputs.items()}  # Remove batch dimension
         inputs['labels'] = torch.tensor(label, dtype=torch.long)
         return inputs
-
-# 初始化BERT分词器和模型
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=3, output_hidden_states=True)
-model.to(device)  # 将模型移动到设备
 
 # 创建数据集和数据加载器
 train_dataset = SentimentDataset(train_texts, train_labels, tokenizer, max_length=128)

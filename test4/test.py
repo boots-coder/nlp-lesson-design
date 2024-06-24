@@ -1,42 +1,66 @@
-import numpy as np
+import spacy
+from textblob import TextBlob
 
-# 示例glove_vectors_list
-glove_vectors_list = [
-    np.random.rand(10, 100),  # 第一组向量序列，10个100维向量
-    np.random.rand(8, 100)    # 第二组向量序列，8个100维向量
+# 加载英文模型
+nlp = spacy.load('en_core_web_sm')
+
+# 示例评论
+reviews = [
+    "This laptop meets every expectation and Windows 7 is great!",
+    "Drivers updated ok but the BIOS update froze the system up and the computer shut down.",
+    "It rarely works and when it does it's incredibly slow.",
+    "The battery life is amazing and the screen is very clear.",
+    "The keyboard feels cheap and the touchpad is unresponsive."
 ]
-labels = [1, 1]  # 标签：1表示POS
 
-# 计算Self-Attention得分矩阵
-def compute_attention_scores(vectors):
-    score_matrix = np.dot(vectors, vectors.T)
-    return score_matrix
 
-# 寻找和标签最接近的短语
-def find_best_matching_phrase(attention_scores, label):
-    # 这里假设最接近标签的短语是得分最高的两个向量
-    # 简单示例：找到最大值及其索引
-    max_score = np.max(attention_scores)
-    indices = np.unravel_index(np.argmax(attention_scores, axis=None), attention_scores.shape)
-    return indices
+# 提取情感三元组
+def extract_sentiment_triplets(reviews):
+    triplets = []
+    for review in reviews:
+        doc = nlp(review)
+        sentiment = TextBlob(review).sentiment.polarity
+        if sentiment > 0:
+            sentiment_label = 'POS'
+        elif sentiment < 0:
+            sentiment_label = 'NEG'
+        else:
+            sentiment_label = 'NEU'
 
-# 寻找与短语最接近的主语
-def find_closest_subject(vectors, phrase_indices):
-    phrase_vector = np.mean(vectors[list(phrase_indices)], axis=0)
-    scores = np.dot(vectors, phrase_vector)
-    closest_index = np.argmax(scores)
-    return closest_index
+        # print(f"Review: {review}")
+        # print(f"Overall Sentiment: {sentiment_label}")
 
-# 主函数
-def main(glove_vectors_list, labels):
-    results = []
-    for i, vectors in enumerate(glove_vectors_list):
-        attention_scores = compute_attention_scores(vectors)
-        phrase_indices = find_best_matching_phrase(attention_scores, labels[i])
-        closest_subject_index = find_closest_subject(vectors, phrase_indices)
-        results.append((list(phrase_indices), [closest_subject_index], 'POS' if labels[i] == 1 else 'NEU' if labels[i] == 0 else 'NEG'))
-    return results
+        # 获取所有名词短语作为潜在的实体和属性
+        noun_phrases = [chunk.text for chunk in doc.noun_chunks]
+        # print(f"Noun Phrases: {noun_phrases}")
 
-# 执行主函数
-result = main(glove_vectors_list, labels)
-print(result)
+        for chunk in doc.noun_chunks:
+            noun_phrase = chunk.text
+            # 查找修饰名词短语的形容词
+            adjectives = [token.text for token in chunk.root.head.children if token.dep_ in ("amod", "acomp")]
+
+            for adjective in adjectives:
+                # 分析形容词的情感
+                phrase_sentiment = TextBlob(adjective).sentiment.polarity
+                if phrase_sentiment > 0:
+                    phrase_sentiment_label = 'POS'
+                elif phrase_sentiment < 0:
+                    phrase_sentiment_label = 'NEG'
+                else:
+                    phrase_sentiment_label = 'NEU'
+
+                # print(f"Noun Phrase: {noun_phrase}, Adjective: {adjective}, Sentiment: {phrase_sentiment_label}")
+
+                # 只考虑与整体情感一致的名词短语
+                if phrase_sentiment_label == sentiment_label:
+                    triplets.append((noun_phrase, adjective, sentiment_label))
+                    # print(f"Triplet: ({noun_phrase}, {adjective}, {sentiment_label})")
+
+    return triplets
+
+
+# 输出结果
+triplets = extract_sentiment_triplets(reviews)
+print("Extracted Sentiment Triplets:")
+for triplet in triplets:
+    print(triplet)
