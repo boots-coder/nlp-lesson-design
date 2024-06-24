@@ -1,0 +1,42 @@
+.
+├── data
+│   └── SemEval-Triplet-data
+├── project_structure.txt
+├── readme.md
+├── test1-sentiment
+│   ├── bert- feature3.py
+│   ├── bert-feature.py
+│   ├── bert-feature2.py
+│   ├── bert-vec.py
+│   ├── gloVe- feature.py
+│   ├── gloVe-feature2.py
+│   ├── gloVe-vec.py
+│   └── test-system.py
+├── test2-Syntax
+│   ├── __pycache__
+│   ├── test-GAT.py
+│   ├── test-ltp.py
+│   └── test-spacy.ipynb
+├── test3
+│   ├── bert-spacy.py
+│   ├── bert-test.py
+│   ├── demo.py
+│   ├── demo_dataset.csv
+│   ├── gloVE-test.py
+│   ├── gloVe-spacy.py
+│   └── test.py
+└── test4
+    ├── bert- TripletExtraction.py
+    ├── bert-model.py
+    ├── dependency_tree_1.svg
+    ├── dependency_tree_2.svg
+    ├── results
+    ├── spacy-gloVe-bert-demo.ipynb
+    ├── spacy-practice.py
+    ├── test-bertloss.py
+    ├── test-readdata.py
+    ├── test-textblob-spacy.py
+    ├── test.py
+    └── textblob-practice.py
+
+9 directories, 31 files
